@@ -36,8 +36,23 @@ app.post('/api/fileanalyse', upload.single('upfile'), function (req, res) {
   });
 });
 
+// Custom error handler, so user gets more info than just 'Internal server error' when try to upload file that is too big.
+app.use(function errorHandler (err, req, res, next) {
+  if (res.headersSent) {
+    return next(err);
+  }
+  if (err.name === 'MulterError' && err.message === 'File too large') {
+    console.log('INFO: User attempted to upload file that is too large.',  Date());
+    res.status(400); // bad request
+    res.send('ERROR: File is too large!');
+  } else {
+    console.error('ERROR:',  Date());
+    return next(err);
+  }
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, function () {
   console.log('Your app is listening on port ' + port)
+  console.log('NODE_ENV:', process.env.NODE_ENV);
 });
